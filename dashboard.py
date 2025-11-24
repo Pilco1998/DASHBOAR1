@@ -13,7 +13,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 2. ESTILOS CSS ---
+# --- 2. ESTILOS CSS (MODIFICADO: TARJETAS MÁS PEQUEÑAS) ---
 st.markdown("""
 <style>
     #MainMenu {visibility: hidden;}
@@ -23,37 +23,56 @@ st.markdown("""
 
     .header-container {
         background-color: #064e3b;
-        padding: 2rem;
+        padding: 1.5rem; /* Reducido un poco */
         border-radius: 0px 0px 15px 15px;
         color: white;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     .header-title {
         font-family: 'Arial', sans-serif;
-        font-size: 28px;
+        font-size: 24px; /* Un poco más pequeño */
         font-weight: 800;
         letter-spacing: 0.5px;
     }
     .header-subtitle {
         color: #a7f3d0;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 500;
         margin-top: 5px;
     }
 
+    /* TARJETAS DE MÉTRICAS COMPACTAS */
     div[data-testid="stMetric"] {
         background-color: white;
-        padding: 15px;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 10px 15px; /* Reducido de 20px a 10px vertical */
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Sombra más suave */
         border: 1px solid #e5e7eb;
         text-align: center;
+        min-height: 100px; /* Altura mínima controlada */
+    }
+
+    /* Título de la métrica (ej: Total Aplicaciones) */
+    div[data-testid="stMetricLabel"] {
+        font-size: 13px !important;
+        color: #6b7280;
+        font-weight: 600;
+        margin-bottom: 0px;
+    }
+
+    /* Valor de la métrica (ej: 55) */
+    div[data-testid="stMetricValue"] {
+        font-size: 24px !important; /* Reducido de 28px a 24px */
+        color: #1f2937;
+        font-weight: bold;
+        padding-top: 5px;
     }
     
-    /* Colores específicos para las tarjetas de categorías */
-    .category-card {
-        border-left: 5px solid #10b981;
+    /* Delta o subtítulo verde */
+    div[data-testid="stMetricDelta"] {
+        font-size: 12px !important;
+        margin-top: 5px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -185,10 +204,9 @@ if has_data:
 
         st.markdown("---")
         
-        # 2. DESGLOSE POR TIPO (NUEVA SECCIÓN SOLICITADA)
+        # 2. DESGLOSE POR TIPO
         st.markdown("##### 🔍 Desglose por Tipo de Aplicación")
         
-        # Función auxiliar para contar (flexible con mayúsculas/plurales)
         def count_cat(keyword):
             if "CATEGORIA" in df.columns:
                 return df["CATEGORIA"].astype(str).str.upper().str.contains(keyword).sum()
@@ -197,13 +215,13 @@ if has_data:
         k1, k2, k3, k4 = st.columns(4)
         
         with k1:
-            st.metric("🌱 CICLOS", f"{count_cat('CICLO')}", "Aplicaciones")
+            st.metric("🌱 CICLOS", f"{count_cat('CICLO')}")
         with k2:
-            st.metric("🍂 FOLIARES", f"{count_cat('FOLIAR')}", "Aplicaciones")
+            st.metric("🍂 FOLIARES", f"{count_cat('FOLIAR')}")
         with k3:
-            st.metric("🔄 INTERCICLOS", f"{count_cat('INTER')}", "Aplicaciones")
+            st.metric("🔄 INTERCICLOS", f"{count_cat('INTER')}")
         with k4:
-            st.metric("🛡️ CONTROL", f"{count_cat('CONTROL')}", "Aplicaciones")
+            st.metric("🛡️ CONTROL", f"{count_cat('CONTROL')}")
 
         st.markdown("---")
 
@@ -222,7 +240,8 @@ if has_data:
                     fig_bar.update_layout(
                         plot_bgcolor="white",
                         yaxis=dict(showgrid=True, gridcolor="#f3f4f6"),
-                        height=350
+                        height=300, # Gráfico más bajo también
+                        margin=dict(l=20, r=20, t=20, b=20)
                     )
                     st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -238,7 +257,7 @@ if has_data:
                 },
                 hole=0.6
             )
-            fig_pie.update_layout(showlegend=False, height=350)
+            fig_pie.update_layout(showlegend=False, height=300, margin=dict(l=20, r=20, t=20, b=20))
             st.plotly_chart(fig_pie, use_container_width=True)
 
         # 4. GRÁFICO COMBINADO
@@ -246,7 +265,6 @@ if has_data:
         df_sorted = df.sort_values("FECHA")
         fig_combo = go.Figure()
 
-        # Área Verde (Hectáreas)
         fig_combo.add_trace(go.Scatter(
             x=df_sorted['FECHA'], y=df_sorted['HAS'], name='Hectáreas',
             mode='lines', fill='tozeroy',
@@ -254,7 +272,6 @@ if has_data:
             fillcolor='rgba(16, 185, 129, 0.2)'
         ))
 
-        # Línea Amarilla (Frecuencia)
         if "FRECUENCIA (DIAS)" in df.columns:
             fig_combo.add_trace(go.Scatter(
                 x=df_sorted['FECHA'], y=df_sorted['FRECUENCIA (DIAS)'], name='Frecuencia',
@@ -264,7 +281,7 @@ if has_data:
             ))
 
         fig_combo.update_layout(
-            plot_bgcolor="white", height=350, hovermode="x unified",
+            plot_bgcolor="white", height=300, hovermode="x unified",
             yaxis=dict(showgrid=True, gridcolor="#f3f4f6"), xaxis=dict(showgrid=False),
             margin=dict(t=20, l=10, r=10, b=10), legend=dict(orientation="h", y=1.1)
         )
